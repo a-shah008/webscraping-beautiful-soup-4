@@ -15,21 +15,27 @@ while no_errors:
         url = f"https://www.newegg.com/p/pl?d={search_term}&N=4131"
         page = requests.get(url).text
         doc = BeautifulSoup(page, "html.parser")
+        print("Requested Desired Page...")
 
         page_text = doc.find(class_="list-tool-pagination-text").strong
         pages = int(str(page_text).split("/")[-2].split(">")[-1][:-1])
+        print("Found pages and corresponding text...")
 
         items_found = {}
 
+        print("Looping through pages...")
         for page in range(1, pages + 1):
             url = f"https://www.newegg.com/p/pl?d={search_term}&N=4131&page={page}"
             page = requests.get(url).text
             doc = BeautifulSoup(page, "html.parser")
+            print("Requested specific page...")
             
             div = doc.find(class_="item-cells-wrap border-cells items-grid-view four-cells expulsion-one-cell")
             items = div.find_all(text=re.compile(search_term))
+            print("Received all items within specific div section...")
 
             for item in items:
+                print("Looping through those items...")
                 parent = item.parent
                 if parent.name != "a":
                     continue
@@ -39,11 +45,13 @@ while no_errors:
                 try:
                     price = next_parent.find(class_="price-current").find("strong").string
                     items_found[item] = {"price": int(price.replace(",", "")), "link":link}
+                    print("Finding items and their respective prices and adding them to the items dictionary...")
                 except:
                     pass
 
         sorted_items = sorted(items_found.items(), key=lambda x: x[1]['price'])
 
+        print("Printing all items found...")
         for item in sorted_items[:10]:
             print("")
             print(item[0])
@@ -53,6 +61,7 @@ while no_errors:
         break
 
     except Exception:
+        print("Error occurred...")
         no_errors = False
         print("A problem in the code was detected. Automatically aborting script.")
         break
